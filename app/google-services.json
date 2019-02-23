@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "697355968823",
+    "firebase_url": "https://mamafood-3922b.firebaseio.com",
+    "project_id": "mamafood-3922b",
+    "storage_bucket": "mamafood-3922b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:697355968823:android:6b8016e05125eb3c",
+        "android_client_info": {
+          "package_name": "com.example.boris.mamafoodjob"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "697355968823-2qc7e9dkmsurf6vo0qp1i4qd8p16krlf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.boris.mamafoodjob",
+            "certificate_hash": "e004bf2b12c052db99be2808564d6eb03db0bdb1"
+          }
+        },
+        {
+          "client_id": "697355968823-4u3e147lou7dmp0ulgpq9d0v4bmj3103.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJNs5ViB-0i8moozsXhirQYEqpL0RGR_w"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "697355968823-4u3e147lou7dmp0ulgpq9d0v4bmj3103.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
