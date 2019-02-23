@@ -69,6 +69,7 @@ public class ForthFragment extends Fragment {
             Calendar calendar = Calendar.getInstance();
             calendar.set(year, month, dayOfMonth);
             date.setText(year + "/" + (month + 1) + "/" + dayOfMonth);
+            preview.date = year + "/" + (month + 1) + "/" + dayOfMonth;
         }
     }
 }

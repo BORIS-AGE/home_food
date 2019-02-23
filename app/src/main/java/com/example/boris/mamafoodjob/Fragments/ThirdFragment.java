@@ -43,6 +43,7 @@ public class ThirdFragment extends Fragment {
         View view = inflater.inflate(R.layout.preview_3, container, false);
 
         EditText description = view.findViewById(R.id.description);
+        preview.description = description.getText().toString();
         return view;
     }
 }

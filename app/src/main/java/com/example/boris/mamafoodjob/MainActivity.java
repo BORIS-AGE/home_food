@@ -1,5 +1,6 @@
 package com.example.boris.mamafoodjob;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Paint;
@@ -22,19 +23,17 @@ import com.google.firebase.database.ValueEventListener;
 
 public class MainActivity extends AppCompatActivity {
 
-    private DatabaseReference myRef;
+
     private static final String  TAG = "myTag";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setDefaults();
-
-        myRef = FirebaseDatabase.getInstance().getReference("moms");
-
-
     }
+
 
     private void setDefaults(){
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
@@ -60,9 +59,5 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void addMom(String name, String description, String date, Bitmap image, Bitmap passport) {
-        String id = myRef.push().getKey();
-        Mom mom = new Mom(name, description, date, image, passport);
-        myRef.child(id).setValue(mom);
-    }
+
 }

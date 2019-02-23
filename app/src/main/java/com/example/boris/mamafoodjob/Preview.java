@@ -1,13 +1,19 @@
 package com.example.boris.mamafoodjob;
 
+import android.Manifest;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Paint;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.PagerAdapter;
@@ -26,33 +32,39 @@ import android.widget.Toast;
 import com.example.boris.mamafoodjob.Adapters.AdapterPreview;
 import com.example.boris.mamafoodjob.Fragments.SecondFragment;
 import com.example.boris.mamafoodjob.Managers.LoginChecker;
+import com.example.boris.mamafoodjob.Model.Mom;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.lang.reflect.Field;
 
 public class Preview extends AppCompatActivity {
-
-    private ViewPager pager;
+    private static final int MY_PERMISSION = 940;
+    private StorageReference mStorageRef;
+    public ViewPager pager;
+    private DatabaseReference myRef;
     //private int[] layouts = {R.layout.preview_1, R.layout.preview_2, R.layout.preview_3, R.layout.preview_4};
     private AdapterPreview adapter;
-
     private LinearLayout dots_layout;
     private ImageView[] dotImg;
-
     public Button next;
 
-    private String name, password, avatar, pasport, date, description;
-    private void pos3(View viewGroup){
+    public String name, password, avatar, passport, date, description;
+    private ProgressDialog progressDialog;
+    private FirebaseAuth firebaseAuth;
 
-    }
-    private void pos4(View viewGroup){
-
-    }
-    public void loginIn(){
-
-    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        reqwestPremissions();
         //check if was before
         //new Manager(this).clearPreference();  - clear notice that u was there
 
@@ -69,6 +81,8 @@ public class Preview extends AppCompatActivity {
         setContentView(R.layout.activity_preview);
         hideToolbar();
 
+        firebaseAuth = FirebaseAuth.getInstance();
+        progressDialog = new ProgressDialog(this);
         pager = findViewById(R.id.pager);
         pager.setOffscreenPageLimit(10);
         adapter = new AdapterPreview(getSupportFragmentManager(),  this);
@@ -111,6 +125,17 @@ public class Preview extends AppCompatActivity {
         //dots
         dots_layout = findViewById(R.id.dots);
         createDots(0);
+    }
+
+    private boolean reqwestPremissions() {
+        if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSION);
+            return false;
+        }else if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSION);
+            return false;
+        }
+        return true;
     }
 
     private void hideToolbar(){
@@ -165,19 +190,75 @@ public class Preview extends AppCompatActivity {
         if (next_slide < 4){
             pager.setCurrentItem(next_slide);
         }else{
-            new LoginChecker(Preview.this).write();
-            startActivity(new Intent(this, MainActivity.class));
-            finish();
+            saveDataToDB();
         }
     }
 
+    private void saveDataToDB() {
+
+        progressDialog.setMessage("Registering user...");
+        progressDialog.show();
+
+        mStorageRef = FirebaseStorage.getInstance().getReference();
+        continueSavingDate();
+
+        /*firebaseAuth.createUserWithEmailAndPassword(name, password).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+            @Override
+            public void onComplete(@NonNull Task<AuthResult> task) {
+                if (task.isSuccessful()){
+                    continueSavingDate();
+                }else{
+                    Toast.makeText(getApplicationContext(), "registration error - " + task.getException(), Toast.LENGTH_LONG).show();
+                }
+            }
+        });*/
+
+    }
+    private void continueSavingDate(){
+        Uri a = Uri.parse(Environment.getExternalStorageState() + avatar);
+        Uri b = Uri.parse(Environment.getExternalStorageState() + passport);
+        String userID = firebaseAuth.getCurrentUser().getUid();
+        boolean exit = true;
+
+        StorageReference storageReference = mStorageRef.child("images/users/" + userID + "/" + name + "1" + ".jpg");
+        exit = storageReference.putFile(a).addOnCompleteListener((Activity) getApplicationContext(), new OnCompleteListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                if (!task.isSuccessful())
+                Toast.makeText(getApplicationContext(), task.getException() + "", Toast.LENGTH_LONG).show();
+            }
+        }).isSuccessful();
+        if (!exit) return;
+        storageReference = mStorageRef.child("images/users/" + userID + "/" + name + "2" + ".jpg");
+        exit = storageReference.putFile(b).addOnCompleteListener((Activity) getApplicationContext(), new OnCompleteListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                if (!task.isSuccessful())
+                    Toast.makeText(getApplicationContext(), task.getException() + "", Toast.LENGTH_LONG).show();
+            }
+        }).isSuccessful();
+        if (exit) return;
+        myRef = FirebaseDatabase.getInstance().getReference("moms");
+        String id = myRef.push().getKey();
+        Mom mom = new Mom(name, description, date, avatar, passport);
+        boolean success = myRef.child(id).setValue(mom).isSuccessful();
+        if (!success) {
+            Toast.makeText(getApplicationContext(), "recording mom error error", Toast.LENGTH_LONG).show();
+        }else{
+            new LoginChecker(Preview.this).write();
+            startActivity(new Intent(getApplicationContext(), MainActivity.class));
+            finish();
+        }
+    }
+    public void loginIn(){
+
+    }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == SecondFragment.PICK_AVATAR && resultCode == Activity.RESULT_OK) {
             avatar = data.getData().getPath();
-
         }
         if (requestCode == SecondFragment.PICK_PASSPORT && resultCode == Activity.RESULT_OK) {
 

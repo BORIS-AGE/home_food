@@ -70,8 +70,10 @@ public class SecondFragment extends Fragment {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == PICK_AVATAR) {
             avatar.setImageURI(data.getData());
+            preview.avatar = data.getData().getPath();
         }if (requestCode == PICK_PASSPORT) {
             passport.setImageURI(data.getData());
+            preview.passport = data.getData().getPath();
         }
     }
 }

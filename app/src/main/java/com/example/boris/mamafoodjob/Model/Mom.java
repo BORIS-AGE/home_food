@@ -6,10 +6,10 @@ public class Mom {
     private String name;
     private String description;
     private String date;
-    private Bitmap image;
-    private Bitmap passport;
+    private String image;
+    private String passport;
 
-    public Mom(String name, String description, String date, Bitmap image, Bitmap passport) {
+    public Mom(String name, String description, String date, String image, String passport) {
         this.name = name;
         this.description = description;
         this.date = date;
@@ -29,11 +29,11 @@ public class Mom {
         return date;
     }
 
-    public Bitmap getImage() {
+    public String getImage() {
         return image;
     }
 
-    public Bitmap getPassport() {
+    public String getPassport() {
         return passport;
     }
 }
