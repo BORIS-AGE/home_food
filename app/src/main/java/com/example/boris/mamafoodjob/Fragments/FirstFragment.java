@@ -48,6 +48,7 @@ public class FirstFragment extends Fragment {
 
         final EditText login = view.findViewById(R.id.login);
         final EditText password = view.findViewById(R.id.password);
+        final EditText name = view.findViewById(R.id.momName);
 
         signIn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -82,7 +83,7 @@ public class FirstFragment extends Fragment {
 
             @Override
             public void afterTextChanged(Editable s) {
-                preview.name = s.toString();
+                preview.email = s.toString();
             }
         });
         password.addTextChangedListener(new TextWatcher() {
@@ -99,6 +100,23 @@ public class FirstFragment extends Fragment {
             @Override
             public void afterTextChanged(Editable s) {
                 preview.password = s.toString();
+            }
+        });
+
+        name.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                preview.name = s.toString();
             }
         });
 

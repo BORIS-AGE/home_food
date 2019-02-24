@@ -44,6 +44,8 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 
 public class Preview extends AppCompatActivity {
@@ -57,7 +59,7 @@ public class Preview extends AppCompatActivity {
     private ImageView[] dotImg;
     public Button next;
 
-    public String name, password, avatar, passport, date, description;
+    public String email, password, avatar, passport, date, description, name;
     private ProgressDialog progressDialog;
     private FirebaseAuth firebaseAuth;
 
@@ -200,9 +202,8 @@ public class Preview extends AppCompatActivity {
         progressDialog.show();
 
         mStorageRef = FirebaseStorage.getInstance().getReference();
-        continueSavingDate();
 
-        /*firebaseAuth.createUserWithEmailAndPassword(name, password).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+        firebaseAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()){
@@ -211,44 +212,38 @@ public class Preview extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "registration error - " + task.getException(), Toast.LENGTH_LONG).show();
                 }
             }
-        });*/
+        });
 
     }
     private void continueSavingDate(){
-        Uri a = Uri.parse(Environment.getExternalStorageState() + avatar);
-        Uri b = Uri.parse(Environment.getExternalStorageState() + passport);
+        Uri a = Uri.parse("content://media" + avatar);
+        Uri b = Uri.parse("content://media" + passport);
         String userID = firebaseAuth.getCurrentUser().getUid();
-        boolean exit = true;
 
-        StorageReference storageReference = mStorageRef.child("images/users/" + userID + "/" + name + "1" + ".jpg");
-        exit = storageReference.putFile(a).addOnCompleteListener((Activity) getApplicationContext(), new OnCompleteListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-                if (!task.isSuccessful())
-                Toast.makeText(getApplicationContext(), task.getException() + "", Toast.LENGTH_LONG).show();
-            }
-        }).isSuccessful();
-        if (!exit) return;
-        storageReference = mStorageRef.child("images/users/" + userID + "/" + name + "2" + ".jpg");
-        exit = storageReference.putFile(b).addOnCompleteListener((Activity) getApplicationContext(), new OnCompleteListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-                if (!task.isSuccessful())
-                    Toast.makeText(getApplicationContext(), task.getException() + "", Toast.LENGTH_LONG).show();
-            }
-        }).isSuccessful();
-        if (exit) return;
+        StorageReference storageReference = mStorageRef.child("images/moms/" + userID + "/" +  "1" + ".jpg");
+        loadPhoto(storageReference, a, 1);
+
+        storageReference = mStorageRef.child("images/moms/" + userID + "/" + "2" + ".jpg");
+        loadPhoto(storageReference, b, 2);
+
+
+
         myRef = FirebaseDatabase.getInstance().getReference("moms");
         String id = myRef.push().getKey();
-        Mom mom = new Mom(name, description, date, avatar, passport);
-        boolean success = myRef.child(id).setValue(mom).isSuccessful();
-        if (!success) {
-            Toast.makeText(getApplicationContext(), "recording mom error error", Toast.LENGTH_LONG).show();
-        }else{
-            new LoginChecker(Preview.this).write();
-            startActivity(new Intent(getApplicationContext(), MainActivity.class));
-            finish();
-        }
+        Mom mom = new Mom(name, description, date, avatar, passport, email);
+        boolean success = myRef.child(userID).setValue(mom).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (!task.isSuccessful()){
+                    Toast.makeText(getApplicationContext(), task.getException() + "", Toast.LENGTH_LONG).show();
+                }
+            }
+        }).isSuccessful();
+        progressDialog.dismiss();
+        new LoginChecker(Preview.this).write();
+        startActivity(new Intent(getApplicationContext(), MainActivity.class));
+        finish();
+
     }
     public void loginIn(){
 
@@ -265,4 +260,23 @@ public class Preview extends AppCompatActivity {
         }
     }
 
+    private void loadPhoto(StorageReference storageReference, Uri b, final int caseOf){
+        storageReference.putFile(b).addOnCompleteListener(this, new OnCompleteListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                if (!task.isSuccessful())
+                    Toast.makeText(getApplicationContext(), task.getException() + "", Toast.LENGTH_LONG).show();
+
+            }
+        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                if (caseOf == 1){
+                    avatar = taskSnapshot.toString();
+                }else{
+                    passport = taskSnapshot.toString();
+                }
+            }
+        });
+    }
 }
