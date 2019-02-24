@@ -33,6 +33,7 @@ import com.example.boris.mamafoodjob.Adapters.AdapterPreview;
 import com.example.boris.mamafoodjob.Fragments.SecondFragment;
 import com.example.boris.mamafoodjob.Managers.LoginChecker;
 import com.example.boris.mamafoodjob.Model.Mom;
+import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -202,7 +203,7 @@ public class Preview extends AppCompatActivity {
         progressDialog.show();
 
         mStorageRef = FirebaseStorage.getInstance().getReference();
-
+continueSavingDate();
         firebaseAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
@@ -224,6 +225,7 @@ public class Preview extends AppCompatActivity {
         loadPhoto(storageReference, a, 1);
 
         storageReference = mStorageRef.child("images/moms/" + userID + "/" + "2" + ".jpg");
+
         loadPhoto(storageReference, b, 2);
 
 
@@ -240,6 +242,7 @@ public class Preview extends AppCompatActivity {
             }
         }).isSuccessful();
         progressDialog.dismiss();
+
         new LoginChecker(Preview.this).write();
         startActivity(new Intent(getApplicationContext(), MainActivity.class));
         finish();
@@ -268,13 +271,14 @@ public class Preview extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), task.getException() + "", Toast.LENGTH_LONG).show();
 
             }
-        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+        }).addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                Toast.makeText(getApplicationContext(), taskSnapshot.getMetadata().getPath(), Toast.LENGTH_LONG).show();
                 if (caseOf == 1){
-                    avatar = taskSnapshot.toString();
+                    avatar = taskSnapshot.getMetadata().getPath();
                 }else{
-                    passport = taskSnapshot.toString();
+                    passport = taskSnapshot.getMetadata().getPath();
                 }
             }
         });
